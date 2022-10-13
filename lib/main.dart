@@ -1,18 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:projet/DessinArbre.dart';
-import 'package:projet/Octree.dart' ;
-
-
-// String arbre = "DPVVPVVVP" ;
-String arbre2 = "DPPPPVVVV" ;
-String arbre1 = "DPPPVPVDVVVVVVPVV" ;
-String arbre3 = "P" ;
-String arbre4 = "V" ;
-// String arbre2 = "DVVVVVVDVVVVVVPVV" ;
-
-int theta = 45 ;
-int phi = 45 ;
-int rho = 50 ;
+import 'package:octrees/DessinArbre.dart';
+import 'package:octrees/Painter.dart';
+import 'package:octrees/Octree.dart';
+import 'package:octrees/OctreesProvider.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,79 +22,38 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(),
+      home: ChangeNotifierProvider(
+            create: (_) => OctreesProvider(),
+            child: MyHomePage())
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends StatelessWidget {
   MyHomePage({Key? key}) : super(key: key);
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: Text('Des cubes !!! Rien que des cubes !!')),
         body: Column(
-          children: [
-            Expanded(child: MyWorkingArea())
-          ],
+          children: [Expanded(child: MyWorkingArea())],
         ));
   }
 }
 
-class MyWorkingArea extends StatefulWidget {
+class MyWorkingArea extends StatelessWidget {
   MyWorkingArea({Key? key}) : super(key: key);
 
-  @override
-  State<MyWorkingArea> createState() => _MyWorkingAreaState();
-}
-class _MyWorkingAreaState extends State<MyWorkingArea> {
-
-  late Octree octree1, octree2, octreeResultant ;
-  late DessinArbre da ;
-
-  void initState() {
-    octree1 = Octree.fromChaine(arbre1, 16) ;
-    octree2 = Octree.fromChaine(arbre2, 16) ;
-    // octreeResultant = octree1.intersection(octree2) ;
-    octreeResultant = octree1.clone() ;
-    //octreeResultant = octree1.complementaire() ;
-    //octreeResultant = Octree.aleatoire(16) ;
-    da = DessinArbre(octreeResultant, theta, phi, rho) ;
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-        size: MediaQuery.of(context).size,
-        painter: Painter(da),
-    );
+    return Consumer<OctreesProvider>(builder: (context, OctreesProvider, child) {
+      OctreesProvider.initState();
+      return CustomPaint(
+        size: MediaQuery
+            .of(context)
+            .size,
+        painter: Painter(OctreesProvider.da),
+      );
+    });
   }
-}
-
-class Painter extends CustomPainter {
-  final DessinArbre da;
-
-  const Painter(this.da);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    da.maxX = size.width ;
-    da.maxY = size.height ;
-    da.dessineArbre (canvas) ;
-  }
-
-  @override
-  bool shouldRepaint(Painter oldDelegate) => true;
 }
